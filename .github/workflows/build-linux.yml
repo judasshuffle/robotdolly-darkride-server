@@ -26,7 +26,9 @@ jobs:
           repository: Madders/darkride-interface
           ref: 1fecb541fa07676aefabdaaaed32848c52c55b15
           path: recipe
-          sparse-checkout: docker/server
+          sparse-checkout: |
+            docker/server
+            cmake/ports/hifi-audio-codec
           sparse-checkout-cone-mode: true
 
       - name: Overlay Docker build scripts only
@@ -36,6 +38,7 @@ jobs:
           cp recipe/docker/server/Dockerfile upstream/docker/server/Dockerfile
           cp recipe/docker/server/install-server.sh upstream/docker/server/install-server.sh
           cp recipe/docker/server/run-server.sh upstream/docker/server/run-server.sh
+          cp recipe/cmake/ports/hifi-audio-codec/portfile.cmake upstream/cmake/ports/hifi-audio-codec/portfile.cmake
           # Legacy 2021 vcpkg bootstrap assumes std::uint64_t is transitively declared.
           # Ensure <cstdint> is present with Ubuntu 24.04's modern compiler.
           sed -i '/^FROM toolchain AS build$/a ENV CXXFLAGS="-include cstdint"' upstream/docker/server/Dockerfile
