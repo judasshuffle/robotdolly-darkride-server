@@ -36,6 +36,9 @@ jobs:
           cp recipe/docker/server/Dockerfile upstream/docker/server/Dockerfile
           cp recipe/docker/server/install-server.sh upstream/docker/server/install-server.sh
           cp recipe/docker/server/run-server.sh upstream/docker/server/run-server.sh
+          # Legacy 2021 vcpkg bootstrap assumes std::uint64_t is transitively declared.
+          # Ensure <cstdint> is present with Ubuntu 24.04's modern compiler.
+          sed -i '/^FROM toolchain AS build$/a ENV CXXFLAGS="-include cstdint"' upstream/docker/server/Dockerfile
           echo "Building official v1.0.0 source with Madders' pinned Docker packaging scripts"
 
       - name: Set up Docker Buildx
