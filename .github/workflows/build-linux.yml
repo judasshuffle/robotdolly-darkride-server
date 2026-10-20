@@ -13,36 +13,14 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 360
     steps:
-      - name: Checkout official DarkRide v1.0.0
-        uses: actions/checkout@v4
-        with:
-          repository: caitlynmeeks/darkride-interface
-          ref: v1.0.0
-          path: upstream
-
-      - name: Checkout Madders Linux Docker recipe
+      - name: Checkout Madders darkride-builds
         uses: actions/checkout@v4
         with:
           repository: Madders/darkride-interface
-          ref: 1fecb541fa07676aefabdaaaed32848c52c55b15
-          path: recipe
-          sparse-checkout: |
-            docker/server
-            cmake/ports/hifi-audio-codec
-          sparse-checkout-cone-mode: true
+          ref: darkride-builds
 
-      - name: Overlay Docker build scripts only
-        shell: bash
-        run: |
-          set -euo pipefail
-          cp recipe/docker/server/Dockerfile upstream/docker/server/Dockerfile
-          cp recipe/docker/server/install-server.sh upstream/docker/server/install-server.sh
-          cp recipe/docker/server/run-server.sh upstream/docker/server/run-server.sh
-          cp recipe/cmake/ports/hifi-audio-codec/portfile.cmake upstream/cmake/ports/hifi-audio-codec/portfile.cmake
-          # Legacy 2021 vcpkg bootstrap assumes std::uint64_t is transitively declared.
-          # Ensure <cstdint> is present with Ubuntu 24.04's modern compiler.
-          sed -i '/^FROM toolchain AS build$/a ENV CXXFLAGS="-include cstdint"' upstream/docker/server/Dockerfile
-          echo "Building official v1.0.0 source with Madders' pinned Docker packaging scripts"
+      - name: Record source revision
+        run: git rev-parse HEAD
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -57,9 +35,9 @@ jobs:
       - name: Build and publish experimental image
         uses: docker/build-push-action@v6
         with:
-          context: ./upstream
-          file: ./upstream/docker/server/Dockerfile
+          context: .
+          file: ./docker/server/Dockerfile
           platforms: linux/amd64
           push: true
-          tags: ghcr.io/judasshuffle/robotdolly-darkride-server:v1.0.0-test
+          tags: ghcr.io/judasshuffle/robotdolly-darkride-server:madders-test
           provenance: false
